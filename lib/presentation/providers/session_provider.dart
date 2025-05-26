@@ -79,6 +79,7 @@ class SessionProvider with ChangeNotifier {
     _currentCard = _scheduler!.selectNextCard();
     _showBack = false;
     _rating = 10;
+    notifyListeners(); // Add this line to update the UI
   }
 
   void showCardBack() {
@@ -93,15 +94,30 @@ class SessionProvider with ChangeNotifier {
   }
 
   Future<void> submitReview() async {
-    if (_currentCard == null || _currentSession == null) return;
+    if (_currentCard == null || _currentSession == null || _scheduler == null) {
+      return;
+    }
 
     try {
-      // Add review logic here (would need review repository)
-      // For now, just move to next card
-      await _getNextCard();
-      _resetTimer();
-      _startTimer();
-      notifyListeners();
+      // Here you would normally save the review to the database
+      // For now, we'll just move to the next card
+
+      // Get the next card from the scheduler
+      final nextCard = _scheduler!.selectNextCard();
+
+      if (nextCard != null) {
+        // Move to next card
+        _currentCard = nextCard;
+        _showBack = false;
+        _rating = 10;
+        _resetTimer();
+        _startTimer();
+        notifyListeners();
+      } else {
+        // No more cards available, end the session
+        debugPrint('No more cards available, ending session');
+        endSession();
+      }
     } catch (e) {
       debugPrint('Error submitting review: $e');
     }

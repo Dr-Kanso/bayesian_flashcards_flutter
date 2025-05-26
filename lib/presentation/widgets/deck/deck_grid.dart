@@ -6,6 +6,7 @@ class DeckGrid extends StatelessWidget {
   final Deck? selectedDeck;
   final Function(Deck) onDeckSelected;
   final VoidCallback onCreateDeck;
+  final Function(Deck)? onDeleteDeck;
 
   const DeckGrid({
     super.key,
@@ -13,6 +14,7 @@ class DeckGrid extends StatelessWidget {
     required this.selectedDeck,
     required this.onDeckSelected,
     required this.onCreateDeck,
+    this.onDeleteDeck,
   });
 
   @override
@@ -95,6 +97,18 @@ class DeckGrid extends StatelessWidget {
                               : Colors.white,
                         ),
                         const Spacer(),
+                        if (onDeleteDeck != null)
+                          IconButton(
+                            onPressed: () =>
+                                _showDeleteConfirmation(context, deck),
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              size: 20,
+                              color: Colors.red,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
                         if (isSelected)
                           const Icon(
                             Icons.check_circle,
@@ -128,6 +142,30 @@ class DeckGrid extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, Deck deck) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Deck'),
+        content: Text('Are you sure you want to delete "${deck.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              onDeleteDeck?.call(deck);
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }

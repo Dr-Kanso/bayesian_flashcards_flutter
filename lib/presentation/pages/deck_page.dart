@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../domain/models/deck.dart';
 import '../providers/deck_provider.dart';
 import '../widgets/deck/deck_grid.dart';
 
@@ -28,7 +29,8 @@ class DeckPage extends StatelessWidget {
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2496DC),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
                     ),
                     child: const Text('Study', style: TextStyle(fontSize: 16)),
                   ),
@@ -41,7 +43,10 @@ class DeckPage extends StatelessWidget {
                 decks: deckProvider.decks,
                 selectedDeck: deckProvider.selectedDeck,
                 onDeckSelected: deckProvider.selectDeck,
-                onCreateDeck: () => _showCreateDeckDialog(context, deckProvider),
+                onCreateDeck: () =>
+                    _showCreateDeckDialog(context, deckProvider),
+                onDeleteDeck: (deck) =>
+                    _deleteDeck(context, deckProvider, deck),
               ),
             ),
           ],
@@ -72,5 +77,23 @@ class DeckPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _deleteDeck(
+      BuildContext context, DeckProvider provider, Deck deck) async {
+    try {
+      await provider.deleteDeck(deck.id!);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Deck "${deck.name}" deleted successfully')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting deck: $e')),
+        );
+      }
+    }
   }
 }
