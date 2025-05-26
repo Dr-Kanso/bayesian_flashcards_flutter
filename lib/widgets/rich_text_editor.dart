@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:flutter_quill_extensions/flutter_quill_extensions.dart'
+    as quill_ext;
 
 class RichTextEditor extends StatefulWidget {
   final String label;
-  final QuillController controller;
+  final quill.QuillController controller;
 
   const RichTextEditor({
     super.key,
@@ -16,6 +18,9 @@ class RichTextEditor extends StatefulWidget {
 }
 
 class _RichTextEditorState extends State<RichTextEditor> {
+  final FocusNode _focusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -42,28 +47,26 @@ class _RichTextEditorState extends State<RichTextEditor> {
             padding: const EdgeInsets.all(8),
             child: Column(
               children: [
-                QuillToolbar.simple(
-                  configurations: QuillSimpleToolbarConfigurations(
-                    controller: widget.controller,
-                    sharedConfigurations: const QuillSharedConfigurations(
-                      locale: Locale('en'),
-                    ),
+                quill.QuillSimpleToolbar(
+                  controller: widget.controller,
+                  config: quill.QuillSimpleToolbarConfig(
+                    embedButtons: quill_ext.FlutterQuillEmbeds.toolbarButtons(),
+                    showClipboardPaste: true,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Container(
                   height: 200,
                   decoration: BoxDecoration(
-                    border: Border.all(color: const Color(0xFF484848)),
-                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.grey),
                   ),
-                  child: QuillEditor.basic(
-                    configurations: QuillEditorConfigurations(
-                      controller: widget.controller,
-                      placeholder: 'Enter text...',
-                      sharedConfigurations: const QuillSharedConfigurations(
-                        locale: Locale('en'),
-                      ),
+                  child: quill.QuillEditor(
+                    controller: widget.controller,
+                    scrollController: _scrollController,
+                    focusNode: _focusNode,
+                    config: const quill.QuillEditorConfig(
+                      padding: EdgeInsets.all(8),
+                      placeholder: 'Start writing...',
                     ),
                   ),
                 ),
@@ -73,5 +76,12 @@ class _RichTextEditorState extends State<RichTextEditor> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 }
