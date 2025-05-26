@@ -4,7 +4,9 @@ import '../../domain/repositories/card_repository.dart';
 import '../../data/repositories/card_repository_impl.dart';
 
 class CardProvider with ChangeNotifier {
-  final CardRepository _cardRepository = CardRepositoryImpl();
+  final CardRepository _cardRepository;
+
+  CardProvider({required CardRepositoryImpl repository}) : _cardRepository = repository;
 
   List<Card> _cards = [];
   bool _isLoading = false;

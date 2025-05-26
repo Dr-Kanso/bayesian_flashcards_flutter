@@ -4,7 +4,9 @@ import '../../data/repositories/review_repository_impl.dart';
 import '../../domain/models/review.dart';
 
 class ReviewProvider with ChangeNotifier {
-  final ReviewRepositoryImpl _reviewRepository = ReviewRepositoryImpl();
+  final ReviewRepositoryImpl _reviewRepository;
+
+  ReviewProvider({required ReviewRepositoryImpl repository}) : _reviewRepository = repository;
 
   List<Review> _reviews = [];
   bool _isLoading = false;

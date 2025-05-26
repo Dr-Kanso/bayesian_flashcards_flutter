@@ -19,7 +19,7 @@ class DeckProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   // Constructor to automatically load decks
-  DeckProvider() {
+  DeckProvider({required DeckRepositoryImpl repository}) {
     loadDecks();
   }
 

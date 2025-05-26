@@ -1,5 +1,6 @@
 import '../database/database_helper.dart';
 import '../../domain/models/review.dart';
+import '../../domain/models/session.dart';
 
 class ReviewRepositoryImpl {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
@@ -24,5 +25,11 @@ class ReviewRepositoryImpl {
       whereArgs: [cardId],
     );
     return List.generate(maps.length, (i) => Review.fromMap(maps[i]));
+  }
+
+  Future<List<Session>> getSessions() async {
+    final db = await _databaseHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query('sessions');
+    return List.generate(maps.length, (i) => Session.fromMap(maps[i]));
   }
 }

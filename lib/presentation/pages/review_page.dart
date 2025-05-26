@@ -28,11 +28,23 @@ class ReviewPage extends StatelessWidget {
                         ? Icons.pause
                         : Icons.play_arrow),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      sessionProvider.endSession();
-                    },
-                    icon: const Icon(Icons.stop),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        sessionProvider.endSession();
+                      },
+                      icon: const Icon(Icons.stop, size: 18),
+                      label: const Text('End Session'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               );
