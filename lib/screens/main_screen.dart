@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../presentation/providers/deck_provider.dart';
 import '../presentation/providers/session_provider.dart';
 import '../presentation/pages/deck_page.dart';
 import '../presentation/pages/add_card_page.dart';

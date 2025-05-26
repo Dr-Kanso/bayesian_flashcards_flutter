@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:flutter_quill_extensions/flutter_quill_extensions.dart'
+    as quill_ext;
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -26,27 +28,29 @@ class CardEditor extends StatefulWidget {
 }
 
 class _CardEditorState extends State<CardEditor> {
-  late QuillController _frontController;
-  late QuillController _backController;
+  late quill.QuillController _frontController;
+  late quill.QuillController _backController;
   String? _frontImage;
   String? _backImage;
   bool _isShowingBack = false;
 
+  final FocusNode _focusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
-    _frontController = QuillController.basic();
-    _backController = QuillController.basic();
+    _frontController = quill.QuillController.basic();
+    _backController = quill.QuillController.basic();
 
     if (widget.initialFront != null) {
-      // Load initial content if provided
-      _frontController.document = Document.fromJson(
+      _frontController.document = quill.Document.fromJson(
         jsonDecode(widget.initialFront!) as List,
       );
     }
 
     if (widget.initialBack != null) {
-      _backController.document = Document.fromJson(
+      _backController.document = quill.Document.fromJson(
         jsonDecode(widget.initialBack!) as List,
       );
     }
@@ -59,11 +63,17 @@ class _CardEditorState extends State<CardEditor> {
   void dispose() {
     _frontController.dispose();
     _backController.dispose();
+    _focusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final quill.QuillController controller =
+        _isShowingBack ? _backController : _frontController;
+    final String? image = _isShowingBack ? _backImage : _frontImage;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -93,7 +103,6 @@ class _CardEditorState extends State<CardEditor> {
               ),
             ],
           ),
-
           const SizedBox(height: 16),
 
           // Editor section
@@ -111,30 +120,33 @@ class _CardEditorState extends State<CardEditor> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Toolbar
-                    QuillToolbar.basic(
-                      controller:
-                          _isShowingBack ? _backController : _frontController,
+                    quill.QuillSimpleToolbar(
+                      controller: controller,
+                      configurations: quill.QuillSimpleToolbarConfigurations(
+                        showClipboardPaste: true,
+                        embedButtons:
+                            quill_ext.FlutterQuillEmbeds.toolbarButtons(),
+                      ),
                     ),
-
                     const SizedBox(height: 8),
 
-                    // Editor
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: QuillEditor.basic(
-                          controller: _isShowingBack
-                              ? _backController
-                              : _frontController,
-                          placeholder: 'Enter text...',
+                        child: quill.QuillEditor(
+                          controller: controller,
+                          focusNode: _focusNode,
+                          scrollController: _scrollController,
+                          configurations: const quill.QuillEditorConfigurations(
+                            placeholder: 'Enter text...',
+                            padding: EdgeInsets.all(8),
+                          ),
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 16),
 
                     // Image section
@@ -146,7 +158,7 @@ class _CardEditorState extends State<CardEditor> {
                           label: const Text('Add Image'),
                         ),
                         const SizedBox(width: 16),
-                        if ((_isShowingBack ? _backImage : _frontImage) != null)
+                        if (image != null)
                           ElevatedButton.icon(
                             onPressed: () => _removeImage(_isShowingBack),
                             icon: const Icon(Icons.delete),
@@ -158,8 +170,7 @@ class _CardEditorState extends State<CardEditor> {
                       ],
                     ),
 
-                    // Image preview
-                    if ((_isShowingBack ? _backImage : _frontImage) != null)
+                    if (image != null)
                       Container(
                         margin: const EdgeInsets.only(top: 16),
                         height: 200,
@@ -168,18 +179,14 @@ class _CardEditorState extends State<CardEditor> {
                           border: Border.all(color: Colors.grey),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: _buildImagePreview(
-                            _isShowingBack ? _backImage! : _frontImage!),
+                        child: _buildImagePreview(image),
                       ),
                   ],
                 ),
               ),
             ),
           ),
-
           const SizedBox(height: 16),
-
-          // Save button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -188,10 +195,7 @@ class _CardEditorState extends State<CardEditor> {
                 backgroundColor: Colors.green,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: const Text(
-                'Save Card',
-                style: TextStyle(fontSize: 16),
-              ),
+              child: const Text('Save Card', style: TextStyle(fontSize: 16)),
             ),
           ),
         ],
@@ -214,9 +218,7 @@ class _CardEditorState extends State<CardEditor> {
     } catch (e) {
       return Container(
         color: Colors.grey[300],
-        child: const Center(
-          child: Text('Invalid image'),
-        ),
+        child: const Center(child: Text('Invalid image')),
       );
     }
   }
@@ -254,14 +256,8 @@ class _CardEditorState extends State<CardEditor> {
     final frontJson = jsonEncode(_frontController.document.toDelta().toJson());
     final backJson = jsonEncode(_backController.document.toDelta().toJson());
 
-    widget.onSave(
-      frontJson,
-      backJson,
-      _frontImage,
-      _backImage,
-    );
+    widget.onSave(frontJson, backJson, _frontImage, _backImage);
 
-    // Clear the editors
     _frontController.clear();
     _backController.clear();
     setState(() {

@@ -49,7 +49,7 @@ class _RichTextEditorState extends State<RichTextEditor> {
               children: [
                 quill.QuillSimpleToolbar(
                   controller: widget.controller,
-                  config: quill.QuillSimpleToolbarConfig(
+                  configurations: quill.QuillSimpleToolbarConfigurations(
                     embedButtons: quill_ext.FlutterQuillEmbeds.toolbarButtons(),
                     showClipboardPaste: true,
                   ),
@@ -64,7 +64,7 @@ class _RichTextEditorState extends State<RichTextEditor> {
                     controller: widget.controller,
                     scrollController: _scrollController,
                     focusNode: _focusNode,
-                    config: const quill.QuillEditorConfig(
+                    configurations: const quill.QuillEditorConfigurations(
                       padding: EdgeInsets.all(8),
                       placeholder: 'Start writing...',
                     ),
