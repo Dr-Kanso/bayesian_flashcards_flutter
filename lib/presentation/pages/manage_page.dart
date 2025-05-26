@@ -11,6 +11,8 @@ class ManagePage extends StatefulWidget {
 }
 
 class _ManagePageState extends State<ManagePage> {
+  int? _lastDeckId;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,6 +21,15 @@ class _ManagePageState extends State<ManagePage> {
       ),
       body: Consumer2<DeckProvider, CardProvider>(
         builder: (context, deckProvider, cardProvider, child) {
+          // Load cards when deck changes
+          if (deckProvider.selectedDeck != null &&
+              _lastDeckId != deckProvider.selectedDeck!.id) {
+            _lastDeckId = deckProvider.selectedDeck!.id;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              cardProvider.loadCardsForDeck(deckProvider.selectedDeck!.id!);
+            });
+          }
+
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -84,64 +95,52 @@ class _ManagePageState extends State<ManagePage> {
                   const SizedBox(height: 16),
 
                   Expanded(
-                    child: FutureBuilder(
-                      future: cardProvider
-                          .loadCardsForDeck(deckProvider.selectedDeck!.id!),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-
-                        final cards = cardProvider.cards;
-
-                        if (cards.isEmpty) {
-                          return const Center(
-                            child: Text('No cards in this deck'),
-                          );
-                        }
-
-                        return ListView.builder(
-                          itemCount: cards.length,
-                          itemBuilder: (context, index) {
-                            final card = cards[index];
-                            return Card(
-                              child: ListTile(
-                                title: Text(
-                                  card.front.replaceAll(RegExp(r'<[^>]*>'), ''),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                subtitle: Text(
-                                  card.back.replaceAll(RegExp(r'<[^>]*>'), ''),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                trailing: PopupMenuButton(
-                                  itemBuilder: (context) => [
-                                    const PopupMenuItem(
-                                      value: 'edit',
-                                      child: Text('Edit'),
+                    child: cardProvider.isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : cardProvider.cards.isEmpty
+                            ? const Center(
+                                child: Text('No cards in this deck'),
+                              )
+                            : ListView.builder(
+                                itemCount: cardProvider.cards.length,
+                                itemBuilder: (context, index) {
+                                  final card = cardProvider.cards[index];
+                                  return Card(
+                                    child: ListTile(
+                                      title: Text(
+                                        card.front
+                                            .replaceAll(RegExp(r'<[^>]*>'), ''),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      subtitle: Text(
+                                        card.back
+                                            .replaceAll(RegExp(r'<[^>]*>'), ''),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      trailing: PopupMenuButton(
+                                        itemBuilder: (context) => [
+                                          const PopupMenuItem(
+                                            value: 'edit',
+                                            child: Text('Edit'),
+                                          ),
+                                          const PopupMenuItem(
+                                            value: 'delete',
+                                            child: Text('Delete'),
+                                          ),
+                                        ],
+                                        onSelected: (value) {
+                                          if (value == 'delete') {
+                                            _showDeleteCardDialog(context,
+                                                cardProvider, card.id!);
+                                          }
+                                        },
+                                      ),
                                     ),
-                                    const PopupMenuItem(
-                                      value: 'delete',
-                                      child: Text('Delete'),
-                                    ),
-                                  ],
-                                  onSelected: (value) {
-                                    if (value == 'delete') {
-                                      _showDeleteCardDialog(
-                                          context, cardProvider, card.id!);
-                                    }
-                                  },
-                                ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        );
-                      },
-                    ),
                   ),
                 ] else
                   const Center(

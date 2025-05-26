@@ -36,6 +36,14 @@ class SessionProvider with ChangeNotifier {
 
   Future<void> startSession(Deck deck) async {
     try {
+      // Load cards first to check if deck has any cards
+      final cards = await _cardRepository.getCardsByDeck(deck.id!);
+      if (cards.isEmpty) {
+        // Don't throw exception, just return early with no session
+        debugPrint('Cannot start session: No cards in deck "${deck.name}"');
+        return;
+      }
+
       // Create session via API call (similar to React implementation)
       _currentSession = Session(
         id: const Uuid().v4(),
@@ -44,12 +52,6 @@ class SessionProvider with ChangeNotifier {
         deckId: deck.id!,
         startTime: DateTime.now(),
       );
-
-      // Load cards and create scheduler
-      final cards = await _cardRepository.getCardsByDeck(deck.id!);
-      if (cards.isEmpty) {
-        throw Exception('No cards in deck');
-      }
 
       _currentUser = const User(id: 1, username: 'default');
       _scheduler = SchedulerService(userProfile: _currentUser!, cards: cards);
@@ -61,6 +63,12 @@ class SessionProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error starting session: $e');
+      // Clean up any partial state
+      _currentSession = null;
+      _currentCard = null;
+      _scheduler = null;
+      _stopTimer();
+      notifyListeners();
       rethrow;
     }
   }

@@ -34,16 +34,17 @@ class CardRepositoryImpl implements CardRepository {
   Future<Card> createCard(Card card, int deckId) async {
     final db = await _databaseHelper.database;
 
+    Card createdCard = card;
     await db.transaction((txn) async {
       final cardId = await txn.insert('cards', card.toMap());
       await txn.insert('deck_cards', {
         'deck_id': deckId,
         'card_id': cardId,
       });
-      return card.copyWith(id: cardId);
+      createdCard = card.copyWith(id: cardId);
     });
 
-    return card;
+    return createdCard;
   }
 
   @override

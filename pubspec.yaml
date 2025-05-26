@@ -23,6 +23,7 @@ dependencies:
   vsc_quill_delta_to_html: ^1.0.3
   cupertino_icons: ^1.0.2
   flutter_quill_extensions: ^10.0.0
+  sqflite_common_ffi: ^2.3.5
 
 dev_dependencies:
   flutter_test:

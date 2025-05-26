@@ -18,6 +18,11 @@ class DeckProvider with ChangeNotifier {
   Deck? get selectedDeck => _selectedDeck;
   bool get isLoading => _isLoading;
 
+  // Constructor to automatically load decks
+  DeckProvider() {
+    loadDecks();
+  }
+
   Future<void> loadDecks() async {
     _isLoading = true;
     notifyListeners();

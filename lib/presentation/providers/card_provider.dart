@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Card;
 import '../../domain/models/card.dart';
 import '../../domain/repositories/card_repository.dart';
@@ -15,7 +14,11 @@ class CardProvider with ChangeNotifier {
 
   Future<void> loadCardsForDeck(int deckId) async {
     _isLoading = true;
-    notifyListeners();
+
+    // Don't notify listeners if we're in the build phase
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     try {
       _cards = await _cardRepository.getCardsByDeck(deckId);
@@ -23,7 +26,9 @@ class CardProvider with ChangeNotifier {
       debugPrint('Error loading cards: $e');
     } finally {
       _isLoading = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 

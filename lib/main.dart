@@ -9,10 +9,11 @@ import 'presentation/providers/session_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize database
-  await DatabaseHelper().database;
-  
+
+  // Initialize database and ensure it's created
+  final databaseHelper = DatabaseHelper();
+  await databaseHelper.database;
+
   runApp(
     MultiProvider(
       providers: [

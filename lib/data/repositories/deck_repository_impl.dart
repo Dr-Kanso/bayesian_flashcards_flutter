@@ -1,4 +1,4 @@
-import '../../core/database/database_helper.dart';
+import '../database/database_helper.dart';
 import '../../domain/models/deck.dart';
 import '../../domain/repositories/deck_repository.dart';
 
